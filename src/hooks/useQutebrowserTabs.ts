@@ -67,8 +67,8 @@ export function useQutebrowserTabs() {
   const openSearchInNewTab = useCallback(
     async (query: string) => {
       try {
-        // Force a search by prefixing the query with "?" which is qutebrowser's default search prefix
-        await SessionUtils.executeCommand(qutebrowserPath, `:open -t ?${query}`);
+        // Use DEFAULT which is the name of the default search engine in qutebrowser's url.searchengines
+        await SessionUtils.executeCommand(qutebrowserPath, `:open -t DEFAULT ${query}`);
         return true;
       } catch (err) {
         showToast({
