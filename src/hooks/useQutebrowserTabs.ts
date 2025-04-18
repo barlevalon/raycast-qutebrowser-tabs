@@ -67,12 +67,30 @@ export function useQutebrowserTabs() {
   const openSearchInNewTab = useCallback(
     async (query: string) => {
       try {
-        await SessionUtils.executeCommand(qutebrowserPath, `:open -t ${query}`);
+        // Force a search by prefixing the query with "?" which is qutebrowser's default search prefix
+        await SessionUtils.executeCommand(qutebrowserPath, `:open -t ?${query}`);
         return true;
       } catch (err) {
         showToast({
           style: Toast.Style.Failure,
           title: "Failed to open search",
+          message: SessionUtils.formatError(err),
+        });
+        return false;
+      }
+    },
+    [qutebrowserPath],
+  );
+
+  const openUrlInNewTab = useCallback(
+    async (url: string) => {
+      try {
+        await SessionUtils.executeCommand(qutebrowserPath, `:open -t ${url}`);
+        return true;
+      } catch (err) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to open URL",
           message: SessionUtils.formatError(err),
         });
         return false;
@@ -90,6 +108,7 @@ export function useQutebrowserTabs() {
     setSearchText,
     focusTab,
     openSearchInNewTab,
+    openUrlInNewTab,
     refreshTabs: revalidate,
   };
 }

@@ -7,9 +7,11 @@ A Raycast extension to search and manage qutebrowser tabs.
 - View all open tabs across all qutebrowser windows
 - Search tabs by title or URL
 - Focus any tab with a single click
-- Open websites in a new tab when no matching tabs are found
+- Smart fallback options when no tabs match:
+  - Search with default search engine (⌘S)
+  - Open directly as a URL (⌘O)
 - Copy URLs to clipboard
-- Fallback search when no tabs match your query
+- Keyboard shortcuts for all actions
 - Debug info for troubleshooting
 
 ## Setup

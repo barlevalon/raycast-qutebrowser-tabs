@@ -1,8 +1,7 @@
-import { List, ActionPanel, Action } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, closeMainWindow } from "@raycast/api";
 
 import { useQutebrowserTabs } from "./hooks/useQutebrowserTabs";
 import { TabListItem } from "./components/TabListItem";
-import { SearchEmptyView } from "./components/SearchEmptyView";
 
 export default function Command() {
   const {
@@ -13,6 +12,7 @@ export default function Command() {
     setSearchText,
     focusTab,
     openSearchInNewTab,
+    openUrlInNewTab,
     refreshTabs,
   } = useQutebrowserTabs();
 
@@ -34,16 +34,51 @@ export default function Command() {
     >
       {error ? (
         <List.EmptyView title="Error" description={error} />
+      ) : filteredTabs.length === 0 && searchText ? (
+        <>
+          <List.Section title="No Matching Tabs">
+            <List.Item
+              title={`Search for "${searchText}"`}
+              subtitle="Search with default search engine"
+              icon={Icon.MagnifyingGlass}
+              actions={
+                <ActionPanel>
+                  <Action
+                    title="Search Web"
+                    shortcut={{ modifiers: ["cmd"], key: "s" }}
+                    onAction={async () => {
+                      const success = await openSearchInNewTab(searchText);
+                      if (success) await closeMainWindow();
+                    }}
+                  />
+                </ActionPanel>
+              }
+            />
+            <List.Item
+              title={`Open "${searchText}"`}
+              subtitle="Open directly as URL"
+              icon={Icon.Globe}
+              actions={
+                <ActionPanel>
+                  <Action
+                    title="Open as URL"
+                    shortcut={{ modifiers: ["cmd"], key: "o" }}
+                    onAction={async () => {
+                      const url = searchText.includes('://') ? searchText : `https://${searchText}`;
+                      const success = await openUrlInNewTab(url);
+                      if (success) await closeMainWindow();
+                    }}
+                  />
+                </ActionPanel>
+              }
+            />
+          </List.Section>
+        </>
       ) : filteredTabs.length === 0 ? (
-        <SearchEmptyView
-          title="No Matching Tabs"
-          description={
-            searchText
-              ? "Your search doesn't match any open tabs. Press Enter to search the web."
-              : "No tabs are currently open in qutebrowser. Press Enter to search the web."
-          }
-          searchText={searchText}
-          onSearch={openSearchInNewTab}
+        <List.EmptyView 
+          title="No Open Tabs" 
+          description="No tabs are currently open in qutebrowser." 
+          icon={Icon.XmarkCircle}
         />
       ) : (
         filteredTabs.map((tab) => (
