@@ -1,7 +1,16 @@
-import { List, ActionPanel, Action, Icon, closeMainWindow } from "@raycast/api";
+import {
+  List,
+  ActionPanel,
+  Action,
+  Icon,
+  closeMainWindow,
+  showToast,
+  Toast,
+} from "@raycast/api";
 
 import { useQutebrowserTabs } from "./hooks/useQutebrowserTabs";
 import { TabListItem } from "./components/TabListItem";
+import { Tab } from "./types";
 
 export default function Command() {
   const {
@@ -27,7 +36,14 @@ export default function Command() {
           <Action
             title="Refresh Tabs"
             shortcut={{ modifiers: ["cmd"], key: "r" }}
-            onAction={refreshTabs}
+            onAction={() => {
+              refreshTabs();
+              showToast({
+                style: Toast.Style.Success,
+                title: "Refreshed tab data",
+              });
+            }}
+            icon={Icon.ArrowClockwise}
           />
         </ActionPanel>
       }
@@ -44,7 +60,7 @@ export default function Command() {
               actions={
                 <ActionPanel>
                   <Action
-                    title="Search Web"
+                    title="Search with Qutebrowser"
                     shortcut={{ modifiers: ["cmd"], key: "s" }}
                     onAction={async () => {
                       const success = await openSearchInNewTab(searchText);
@@ -61,10 +77,12 @@ export default function Command() {
               actions={
                 <ActionPanel>
                   <Action
-                    title="Open as URL"
+                    title="Open URL with Qutebrowser"
                     shortcut={{ modifiers: ["cmd"], key: "o" }}
                     onAction={async () => {
-                      const url = searchText.includes('://') ? searchText : `https://${searchText}`;
+                      const url = searchText.includes("://")
+                        ? searchText
+                        : `https://${searchText}`;
                       const success = await openUrlInNewTab(url);
                       if (success) await closeMainWindow();
                     }}
@@ -75,20 +93,63 @@ export default function Command() {
           </List.Section>
         </>
       ) : filteredTabs.length === 0 ? (
-        <List.EmptyView 
-          title="No Open Tabs" 
-          description="No tabs are currently open in qutebrowser." 
+        <List.EmptyView
+          title="No Open Tabs"
+          description="No tabs are currently open in qutebrowser."
           icon={Icon.XmarkCircle}
         />
       ) : (
-        filteredTabs.map((tab) => (
-          <TabListItem
-            key={`${tab.window}-${tab.index}`}
-            tab={tab}
-            onFocus={focusTab}
-            refreshTabs={refreshTabs}
-          />
-        ))
+        // Group tabs by window, with proper ordering
+        (() => {
+          // Group tabs by window
+          const windowGroups = new Map<number, Tab[]>();
+
+          // Create a group for each window
+          filteredTabs.forEach((tab) => {
+            if (!windowGroups.has(tab.window)) {
+              windowGroups.set(tab.window, []);
+            }
+            windowGroups.get(tab.window)?.push(tab);
+          });
+
+          // Sort tabs within each window group
+          windowGroups.forEach((tabs, windowIdx) => {
+            tabs.sort((a, b) => {
+              // First by active status (active tabs first within window)
+              if (a.active && !b.active) return -1;
+              if (!a.active && b.active) return 1;
+
+              // Then by pinned status
+              if (a.pinned && !b.pinned) return -1;
+              if (!a.pinned && b.pinned) return 1;
+
+              // Then by tab index
+              return a.index - b.index;
+            });
+          });
+
+          // Sort window groups by window index
+          const sortedWindows = Array.from(windowGroups.entries()).sort(
+            ([windowA], [windowB]) => windowA - windowB,
+          );
+
+          return (
+            <>
+              {sortedWindows.map(([windowIdx, tabs]) => (
+                <List.Section key={windowIdx} title={`Window ${windowIdx + 1}`}>
+                  {tabs.map((tab) => (
+                    <TabListItem
+                      key={`${tab.window}-${tab.index}`}
+                      tab={tab}
+                      onFocus={focusTab}
+                      refreshTabs={refreshTabs}
+                    />
+                  ))}
+                </List.Section>
+              ))}
+            </>
+          );
+        })()
       )}
     </List>
   );

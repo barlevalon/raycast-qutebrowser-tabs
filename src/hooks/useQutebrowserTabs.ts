@@ -5,15 +5,11 @@ import { Preferences, Tab } from "../types";
 import { fetchQutebrowserTabs } from "../utils/tabFetcher";
 import SessionUtils from "../utils/sessionUtils";
 
-/**
- * Custom hook to manage qutebrowser tabs
- */
 export function useQutebrowserTabs() {
   const preferences = getPreferenceValues<Preferences>();
   const qutebrowserPath =
     preferences.qutebrowserPath || "/opt/homebrew/bin/qutebrowser";
 
-  // Use Raycast's usePromise for automatic data fetching and loading state
   const {
     data: tabs = [],
     isLoading,
@@ -29,10 +25,8 @@ export function useQutebrowserTabs() {
     },
   });
 
-  // Search state
   const [searchText, setSearchText] = useState<string>("");
 
-  // Filter tabs based on search text
   const filteredTabs = tabs.filter((tab) => {
     if (!searchText.trim()) return true;
 
@@ -43,7 +37,6 @@ export function useQutebrowserTabs() {
     );
   });
 
-  // Tab actions
   const focusTab = useCallback(
     async (tab: Tab) => {
       try {
@@ -51,6 +44,7 @@ export function useQutebrowserTabs() {
           qutebrowserPath,
           `:tab-select ${tab.url}`,
         );
+
         return true;
       } catch (err) {
         showToast({
@@ -67,8 +61,10 @@ export function useQutebrowserTabs() {
   const openSearchInNewTab = useCallback(
     async (query: string) => {
       try {
-        // Use DEFAULT which is the name of the default search engine in qutebrowser's url.searchengines
-        await SessionUtils.executeCommand(qutebrowserPath, `:open -t DEFAULT ${query}`);
+        await SessionUtils.executeCommand(
+          qutebrowserPath,
+          `:open -t DEFAULT ${query}`,
+        );
         return true;
       } catch (err) {
         showToast({
@@ -99,6 +95,10 @@ export function useQutebrowserTabs() {
     [qutebrowserPath],
   );
 
+  const refreshTabs = useCallback(async () => {
+    return revalidate();
+  }, [revalidate]);
+
   return {
     tabs,
     filteredTabs,
@@ -109,6 +109,6 @@ export function useQutebrowserTabs() {
     focusTab,
     openSearchInNewTab,
     openUrlInNewTab,
-    refreshTabs: revalidate,
+    refreshTabs,
   };
 }

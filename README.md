@@ -1,42 +1,47 @@
 # Qutebrowser Tabs
 
-A Raycast extension to search and manage qutebrowser tabs.
+A Raycast extension to search and manage your qutebrowser tabs.
 
 ## Features
 
-- View all open tabs across all qutebrowser windows
-- Search tabs by title or URL
+- View and search all open qutebrowser tabs
+- Sort tabs with active tab first, then pinned tabs
 - Focus any tab with a single click
-- Smart fallback options when no tabs match:
-  - Search with default search engine (⌘S)
-  - Open directly as a URL (⌘O)
+- Open new tabs with search queries
 - Copy URLs to clipboard
-- Keyboard shortcuts for all actions
-- Debug info for troubleshooting
-
-## Setup
-
-Simply install the extension. If needed, configure the qutebrowser path in preferences:
-   - **Qutebrowser Path**: Path to your qutebrowser executable (default: `/opt/homebrew/bin/qutebrowser`)
-
-## How It Works
-
-This extension interacts with qutebrowser by:
-1. Reading qutebrowser's auto-saved session file to get tab information
-2. Displaying tabs with their titles and URLs in Raycast
-3. Using qutebrowser's command-line interface to focus tabs or open new tabs
+- Open tabs in default browser
 
 ## Requirements
 
 - Qutebrowser must be installed and running
-- Qutebrowser's auto-save session feature must be enabled (default setting)
+- Raycast
+
+## Installation
+
+1. Install the extension in Raycast
+2. Configure the qutebrowser path if needed:
+   - Open extension preferences
+   - Set **Qutebrowser Path** (default: `/opt/homebrew/bin/qutebrowser`)
+
+## Usage
+
+- **Open the extension**: Launch Raycast and search for "Qutebrowser Tabs"
+- **Search tabs**: Start typing to filter tabs by title or URL
+- **Open with Qutebrowser**: Select a tab and press ⌘O
+- **Open with Default Browser**: Select a tab and press ⌘⇧O
+- **Copy URL**: Select a tab and press ⌘C
+- **Refresh tabs**: Press ⌘R to refresh the tab list
+- **Search with Qutebrowser**: When no tabs match, select "Search with Qutebrowser" (⌘S)
+- **Open URL with Qutebrowser**: When no tabs match, select "Open URL with Qutebrowser" (⌘O)
 
 ## Troubleshooting
 
 If you experience issues:
-1. Check if qutebrowser is running
-2. Verify the qutebrowser path in extension preferences is correct
-3. Make sure you have auto-save sessions enabled in qutebrowser (`c.auto_save.session = True`)
+
+1. Make sure qutebrowser is running
+2. Verify the qutebrowser path in extension preferences
+3. Try refreshing the tab list (⌘R)
+4. Use the "Debug Info" menu to get more information
 
 ## Credits
 

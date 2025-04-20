@@ -6,6 +6,7 @@ import {
   showToast,
   Toast,
   closeMainWindow,
+  Icon,
 } from "@raycast/api";
 import { exec } from "child_process";
 import fs from "fs";
@@ -20,7 +21,6 @@ interface TabListItemProps {
 }
 
 export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
-  // Function to save debug info to a file
   const saveDebugInfo = async (debugInfo: DebugInfo) => {
     try {
       const debugPath = path.join(
@@ -44,7 +44,6 @@ export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
     }
   };
 
-  // Function for copying URL to clipboard
   const copyUrl = (url: string) => {
     Clipboard.copy(url);
     showToast({
@@ -53,12 +52,10 @@ export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
     });
   };
 
-  // Function to open URL in default browser
   const openInBrowser = (url: string) => {
     exec(`open "${url}"`);
   };
 
-  // Handle tab focus with auto-closing main window
   const handleTabFocus = async () => {
     const success = await onFocus(tab);
     if (success) {
@@ -69,48 +66,93 @@ export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
   return (
     <List.Item
       key={`${tab.window}-${tab.index}`}
+      icon={tab.pinned ? { source: Icon.Tack } : undefined}
       title={tab.title || "Untitled"}
       subtitle={tab.url}
       accessories={
         [
-          { text: `Window ${tab.window + 1}, Tab ${tab.index + 1}` },
-          tab.active ? { icon: "checkmark-circle" } : null,
-        ].filter(Boolean) as { text?: string; icon?: string }[]
+          { text: `Tab ${tab.index + 1}` },
+          tab.pinned ? { tag: "Pinned", color: "green" } : null,
+          tab.active ? { tag: "Active", color: "blue" } : null,
+        ].filter(Boolean) as {
+          text?: string;
+          icon?: string;
+          tag?: string;
+          color?: string;
+          tooltip?: string;
+        }[]
       }
       actions={
         <ActionPanel>
+          <ActionPanel.Section title="Tab Actions">
+            <Action
+              title="Open with Qutebrowser"
+              shortcut={{ modifiers: ["cmd"], key: "o" }}
+              onAction={handleTabFocus}
+            />
+            <Action
+              title="Open with Default Browser"
+              shortcut={{ modifiers: ["cmd", "shift"], key: "o" }}
+              onAction={() => openInBrowser(tab.url)}
+            />
+            <Action
+              title="Copy URL"
+              shortcut={{ modifiers: ["cmd"], key: "c" }}
+              onAction={() => copyUrl(tab.url)}
+            />
+          </ActionPanel.Section>
+
           {tab.debug && (
             <ActionPanel.Section title="Debug Info">
               <Action
                 title="Save Debug Info to File"
                 onAction={() => saveDebugInfo(tab.debug as DebugInfo)}
               />
+              {tab.debug?.autosave_path && (
+                <Action
+                  title="Autosave Info"
+                  onAction={() =>
+                    showToast({
+                      style: Toast.Style.Animated,
+                      title: "Autosave Session Data",
+                      message: `File: ${tab.debug?.autosave_path} (${tab.debug?.autosave_age} old)`,
+                    })
+                  }
+                />
+              )}
+              {tab.debug?.success_file && (
+                <Action
+                  title="Session Source"
+                  onAction={() =>
+                    showToast({
+                      style: Toast.Style.Animated,
+                      title: "Data Source",
+                      message: `Using file: ${tab.debug?.success_file}`,
+                    })
+                  }
+                />
+              )}
+              {tab.debug?.note && (
+                <Action
+                  title="Note"
+                  onAction={() =>
+                    showToast({
+                      style: Toast.Style.Animated,
+                      title: "Info",
+                      message: tab.debug?.note || "",
+                    })
+                  }
+                />
+              )}
             </ActionPanel.Section>
           )}
-
-          <ActionPanel.Section title="Tab Actions">
-            <Action
-              title="Focus Tab"
-              shortcut={{ modifiers: ["cmd"], key: "f" }}
-              onAction={handleTabFocus}
-            />
-            <Action
-              title="Open in Default Browser"
-              shortcut={{ modifiers: ["cmd"], key: "o" }}
-              onAction={() => openInBrowser(tab.url)}
-            />
-            <Action
-              title="Copy URL"
-              shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-              onAction={() => copyUrl(tab.url)}
-            />
-          </ActionPanel.Section>
 
           <ActionPanel.Section title="Refresh">
             <Action
               title="Refresh Tabs"
               shortcut={{ modifiers: ["cmd"], key: "r" }}
               onAction={refreshTabs}
+              icon={Icon.ArrowClockwise}
             />
           </ActionPanel.Section>
         </ActionPanel>
