@@ -45,35 +45,46 @@ const SessionUtils = {
   },
 
   findSessionFile: (debugInfo: DebugInfo): string | null => {
-    const autoSavePath = SESSION_FILE_PATHS[0];
+    // Try all possible session file paths
+    for (const filePath of SESSION_FILE_PATHS) {
+      try {
+        debugInfo.locations_checked.push(filePath);
 
-    debugInfo.locations_checked.push(autoSavePath);
+        if (fs.existsSync(filePath)) {
+          debugInfo.files_found.push(filePath);
 
-    try {
-      if (fs.existsSync(autoSavePath)) {
-        debugInfo.files_found.push(autoSavePath);
-        debugInfo.success_file = autoSavePath;
+          try {
+            const stats = fs.statSync(filePath);
+            const fileAge = Date.now() - stats.mtime.getTime();
+            const ageInSeconds = Math.round(fileAge / 1000);
 
-        const stats = fs.statSync(autoSavePath);
-        debugInfo.success_file_size = stats.size;
-        debugInfo.success_file_mtime = stats.mtime.toISOString();
+            // If this is the first file found, store more details about it
+            if (!debugInfo.success_file) {
+              debugInfo.success_file = filePath;
+              debugInfo.success_file_size = stats.size;
+              debugInfo.success_file_mtime = stats.mtime.toISOString();
+              debugInfo.autosave_age = `${ageInSeconds}s`;
+            }
 
-        const fileAge = Date.now() - stats.mtime.getTime();
-        debugInfo.autosave_age = `${Math.round(fileAge / 1000)}s`;
-
-        const content = fs.readFileSync(autoSavePath, "utf-8");
-        return content;
-      } else {
+            const content = fs.readFileSync(filePath, "utf-8");
+            return content;
+          } catch (statError) {
+            debugInfo.errors.push(
+              `Error reading stats for ${filePath}: ${SessionUtils.formatError(statError)}`,
+            );
+          }
+        }
+      } catch (fileError) {
         debugInfo.errors.push(
-          `Primary autosave file not found: ${autoSavePath}`,
+          `Error checking file ${filePath}: ${SessionUtils.formatError(fileError)}`,
         );
       }
-    } catch (e) {
-      debugInfo.errors.push(
-        `Error reading autosave file: ${SessionUtils.formatError(e)}`,
-      );
     }
 
+    // If we get here, no session files were found
+    debugInfo.errors.push(
+      `No session files found in any of the expected locations`,
+    );
     return null;
   },
 

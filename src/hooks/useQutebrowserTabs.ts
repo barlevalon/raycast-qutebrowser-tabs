@@ -39,9 +39,10 @@ export function useQutebrowserTabs() {
   const focusTab = useCallback(
     async (tab: Tab) => {
       try {
+        const safeUrl = tab.url.replace(/"/g, '\\"').replace(/\$/g, "\\$");
         await SessionUtils.executeCommand(
           qutebrowserPath,
-          `:tab-select ${tab.url}`,
+          `:tab-select ${safeUrl}`,
         );
 
         return true;
@@ -59,9 +60,10 @@ export function useQutebrowserTabs() {
   const openSearchInNewTab = useCallback(
     async (query: string) => {
       try {
+        const safeQuery = query.replace(/"/g, '\\"').replace(/\$/g, "\\$");
         await SessionUtils.executeCommand(
           qutebrowserPath,
-          `:open -t DEFAULT ${query}`,
+          `:open -t DEFAULT ${safeQuery}`,
         );
         return true;
       } catch (err) {
@@ -78,7 +80,11 @@ export function useQutebrowserTabs() {
   const openUrlInNewTab = useCallback(
     async (url: string) => {
       try {
-        await SessionUtils.executeCommand(qutebrowserPath, `:open -t ${url}`);
+        const safeUrl = url.replace(/"/g, '\\"').replace(/\$/g, "\\$");
+        await SessionUtils.executeCommand(
+          qutebrowserPath,
+          `:open -t ${safeUrl}`,
+        );
         return true;
       } catch (err) {
         showFailureToast({

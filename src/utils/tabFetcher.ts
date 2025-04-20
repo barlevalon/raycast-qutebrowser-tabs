@@ -13,28 +13,38 @@ export async function fetchQutebrowserTabs(): Promise<Tab[]> {
   };
 
   // Check if background process already determined qutebrowser is not running
-  const notRunningMarker = path.join(
-    os.tmpdir(),
-    "raycast_qutebrowser_not_running",
-  );
-  if (fs.existsSync(notRunningMarker)) {
-    try {
-      const stats = fs.statSync(notRunningMarker);
-      const fileAge = Date.now() - stats.mtime.getTime();
-      const isFresh = fileAge < 5000; // 5 seconds
+  try {
+    const notRunningMarker = path.join(
+      os.tmpdir(),
+      "raycast_qutebrowser_not_running",
+    );
+    if (fs.existsSync(notRunningMarker)) {
+      try {
+        const stats = fs.statSync(notRunningMarker);
+        const fileAge = Date.now() - stats.mtime.getTime();
+        const isFresh = fileAge < 5000; // 5 seconds
 
-      if (isFresh) {
-        debugInfo.qutebrowser_running = false;
-        throw new Error(
-          "Qutebrowser is not running. Please start qutebrowser first.",
-        );
-      } else {
-        // Marker file is too old, remove it and continue with normal check
-        fs.unlinkSync(notRunningMarker);
+        if (isFresh) {
+          debugInfo.qutebrowser_running = false;
+          debugInfo.errors.push("Qutebrowser not running (marker file found)");
+          throw new Error(
+            "Qutebrowser is not running. Please start qutebrowser first.",
+          );
+        } else {
+          // Marker file is too old, remove it and continue with normal check
+          fs.unlinkSync(notRunningMarker);
+          debugInfo.note = "Removed stale not-running marker file";
+        }
+      } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.error("Error checking not-running marker:", e);
+        debugInfo.errors.push(`Marker file error: ${errorMessage}`);
       }
-    } catch (e) {
-      console.error("Error checking not-running marker:", e);
     }
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error("Error accessing tmp directory:", e);
+    debugInfo.errors.push(`Temp directory error: ${errorMessage}`);
   }
 
   const qutebrowserRunning = await SessionUtils.isRunning();
