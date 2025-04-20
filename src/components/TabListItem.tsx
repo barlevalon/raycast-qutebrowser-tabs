@@ -9,10 +9,7 @@ import {
   Icon,
 } from "@raycast/api";
 import { exec } from "child_process";
-import fs from "fs";
-import path from "path";
-import os from "os";
-import { Tab, DebugInfo } from "../types";
+import { Tab } from "../types";
 
 interface TabListItemProps {
   tab: Tab;
@@ -21,28 +18,6 @@ interface TabListItemProps {
 }
 
 export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
-  const saveDebugInfo = async (debugInfo: DebugInfo) => {
-    try {
-      const debugPath = path.join(
-        os.homedir(),
-        "Desktop",
-        "qutebrowser-raycast-debug.json",
-      );
-      fs.writeFileSync(debugPath, JSON.stringify(debugInfo, null, 2));
-      showToast({
-        style: Toast.Style.Success,
-        title: "Debug Info Saved",
-        message: `Saved to ${debugPath}`,
-      });
-      exec(`open "${debugPath}"`);
-    } catch (err) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Failed to save debug info",
-        message: err instanceof Error ? err.message : String(err),
-      });
-    }
-  };
 
   const copyUrl = (url: string) => {
     Clipboard.copy(url);
@@ -101,51 +76,6 @@ export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
               onAction={() => copyUrl(tab.url)}
             />
           </ActionPanel.Section>
-
-          {tab.debug && (
-            <ActionPanel.Section title="Debug Info">
-              <Action
-                title="Save Debug Info to File"
-                onAction={() => saveDebugInfo(tab.debug as DebugInfo)}
-              />
-              {tab.debug?.autosave_path && (
-                <Action
-                  title="Autosave Info"
-                  onAction={() =>
-                    showToast({
-                      style: Toast.Style.Animated,
-                      title: "Autosave Session Data",
-                      message: `File: ${tab.debug?.autosave_path} (${tab.debug?.autosave_age} old)`,
-                    })
-                  }
-                />
-              )}
-              {tab.debug?.success_file && (
-                <Action
-                  title="Session Source"
-                  onAction={() =>
-                    showToast({
-                      style: Toast.Style.Animated,
-                      title: "Data Source",
-                      message: `Using file: ${tab.debug?.success_file}`,
-                    })
-                  }
-                />
-              )}
-              {tab.debug?.note && (
-                <Action
-                  title="Note"
-                  onAction={() =>
-                    showToast({
-                      style: Toast.Style.Animated,
-                      title: "Info",
-                      message: tab.debug?.note || "",
-                    })
-                  }
-                />
-              )}
-            </ActionPanel.Section>
-          )}
 
           <ActionPanel.Section title="Refresh">
             <Action

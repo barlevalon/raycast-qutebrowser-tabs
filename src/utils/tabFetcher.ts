@@ -80,10 +80,7 @@ export async function fetchQutebrowserTabs(): Promise<Tab[]> {
   let tabs: Tab[] = [];
 
   if (content) {
-    tabs = SessionUtils.parseSessionYaml(content).map((tab) => ({
-      ...tab,
-      debug: { ...debugInfo },
-    }));
+    tabs = SessionUtils.parseSessionYaml(content);
 
     if (tabs.length > 0) {
       debugInfo.tabs_found = tabs.length;
@@ -100,9 +97,8 @@ export async function fetchQutebrowserTabs(): Promise<Tab[]> {
         window: 0,
         index: 0,
         url: "https://qutebrowser.org",
-        title: "No tabs found - Click for debug info",
-        active: true,
-        debug: debugInfo,
+        title: "No tabs found",
+        active: true
       },
     ];
   }

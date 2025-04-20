@@ -49,7 +49,6 @@ export interface Tab {
   title: string;
   active: boolean;
   pinned?: boolean;
-  debug?: DebugInfo;
 }
 
 export interface Preferences {
