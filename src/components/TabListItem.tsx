@@ -18,7 +18,6 @@ interface TabListItemProps {
 }
 
 export function TabListItem({ tab, onFocus, refreshTabs }: TabListItemProps) {
-
   const copyUrl = (url: string) => {
     Clipboard.copy(url);
     showToast({

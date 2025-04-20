@@ -113,7 +113,7 @@ export default function Command() {
           });
 
           // Sort tabs within each window group
-          windowGroups.forEach((tabs, windowIdx) => {
+          windowGroups.forEach((tabs) => {
             tabs.sort((a, b) => {
               // First by active status (active tabs first within window)
               if (a.active && !b.active) return -1;

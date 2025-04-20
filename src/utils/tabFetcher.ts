@@ -98,7 +98,7 @@ export async function fetchQutebrowserTabs(): Promise<Tab[]> {
         index: 0,
         url: "https://qutebrowser.org",
         title: "No tabs found",
-        active: true
+        active: true,
       },
     ];
   }
